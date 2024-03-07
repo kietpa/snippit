@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
@@ -52,8 +53,10 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
-		CurrentYear: time.Now().Year(),
-		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		CurrentYear:     time.Now().Year(),
+		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuthenticated: app.isAuthenticated(r),
+		CSRFToken:       nosurf.Token(r),
 	}
 }
 
@@ -62,8 +65,7 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 	if err != nil {
 		return err
 	}
-	// Call Decode() on our decoder instance, passing the target destination as
-	// the first parameter.
+
 	err = app.formDecoder.Decode(dst, r.PostForm)
 	if err != nil {
 		// If we try to use an invalid target destination, the Decode() method
@@ -74,8 +76,11 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 		if errors.As(err, &invalidDecoderError) {
 			panic(err)
 		}
-		// For all other errors, we return them as normal.
 		return err
 	}
 	return nil
+}
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }
