@@ -28,7 +28,7 @@ type application struct {
 
 func main() {
 	addr := flag.String("addr", "localhost:4000", "HTTP network address")
-	dsn := flag.String("dsn", "root:@tcp(localhost:3306)/snippit?parseTime=true", "MySQL connection string")
+	dsn := flag.String("dsn", "root:root@tcp(localhost:3306)/snippit?parseTime=true", "MySQL connection string")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
